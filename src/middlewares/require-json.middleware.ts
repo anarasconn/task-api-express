@@ -1,6 +1,7 @@
 ﻿import type { NextFunction, Request, Response } from 'express';
 import { AppError } from '../errors/app-error.js';
 
+// Rechaza la peticion si no indica que su contenido esta en formato JSON.
 export const requireJson = (
   req: Request,
   _res: Response,

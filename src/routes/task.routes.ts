@@ -12,8 +12,10 @@ import { validateTaskTitle } from '../middlewares/validate-task-title.middleware
 
 export const taskRouter = Router();
 
+// Valida automaticamente el parametro :id en las rutas que lo utilizan.
 taskRouter.param('id', validateTaskId);
 
+// Registra los endpoints para consultar, crear, completar y borrar tareas.
 taskRouter.get('/', getTasks);
 taskRouter.get('/:id', getTask);
 taskRouter.post('/', requireJson, validateTaskTitle, postTask);

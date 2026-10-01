@@ -1,6 +1,7 @@
 ﻿import type { NextFunction, Request, Response } from 'express';
 import { AppError } from '../errors/app-error.js';
 
+// Comprueba el titulo de la nueva tarea y guarda su version sin espacios externos.
 export const validateTaskTitle = (
   req: Request,
   res: Response,

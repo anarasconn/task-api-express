@@ -1,5 +1,6 @@
 import type { FieldIssue } from '../types/api-error.js';
 
+// Error de la aplicacion que incluye el estado HTTP y un codigo identificador.
 export class AppError extends Error {
   constructor(
     message: string,

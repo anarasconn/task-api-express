@@ -2,6 +2,7 @@
 import { AppError } from '../errors/app-error.js';
 import type { ApiErrorPayload } from '../types/api-error.js';
 
+// Identifica los errores de sintaxis JSON producidos al leer una peticion.
 const isInvalidJson = (error: unknown): boolean => {
   if (!(error instanceof SyntaxError)) return false;
   return 'status' in error
@@ -9,6 +10,7 @@ const isInvalidJson = (error: unknown): boolean => {
     && error.status === 400;
 };
 
+  // Envia el error con el formato comun de respuestas de la API.
 const sendError = (
   res: Response,
   status: number,
@@ -17,6 +19,7 @@ const sendError = (
   res.status(status).json({ error: payload });
 };
 
+// Convierte errores conocidos e inesperados en respuestas HTTP consistentes.
 export const errorHandler = (
   error: unknown,
   _req: Request,

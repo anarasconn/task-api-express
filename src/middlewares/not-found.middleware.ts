@@ -1,6 +1,7 @@
 ﻿import type { NextFunction, Request, Response } from 'express';
 import { AppError } from '../errors/app-error.js';
 
+// Convierte cualquier ruta no registrada en un error 404.
 export const notFound = (
   req: Request,
   _res: Response,

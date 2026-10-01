@@ -1,5 +1,6 @@
 import type { Task } from '../models/task.js';
 
+// Datos iniciales guardados en memoria; se reinician al reiniciar el servidor.
 export const tasks: Task[] = [
   {
     id: 1,
