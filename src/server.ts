@@ -1,9 +1,29 @@
-﻿import { app } from './app.js';
+﻿import dns from 'node:dns';
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+import 'dotenv/config';
+import { app } from './app.js';
+import { connectDatabase } from './config/database.js';
+import { loadEnvironment } from './config/env.js';
 
-// Usa el puerto configurado o 3000 si no se definio uno.
-const port = Number(process.env.PORT) || 3000;
+const startServer = async (): Promise<void> => {
+  try {
+    const env = loadEnvironment();
 
-// Inicia el servidor para que pueda recibir peticiones HTTP.
-app.listen(port, () => {
-  console.log(`Servidor escuchando en http://localhost:${port}`);
-});
+    await connectDatabase({
+      uri: env.mongodbUri,
+      dbName: env.mongodbDbName
+    });
+
+    app.listen(env.port, () => {
+      console.log(`API disponible en http://localhost:${env.port}`);
+    });
+   } catch (error) {
+console.error(error instanceof Error ? `${error.name}: ${error.message}` : 'Error desconocido');    console.error(
+      'No fue posible iniciar la API. Revise MONGODB_URI, ' +
+      'el usuario y la lista de acceso de red.'
+    );
+    process.exitCode = 1;
+  }
+};
+
+void startServer();
