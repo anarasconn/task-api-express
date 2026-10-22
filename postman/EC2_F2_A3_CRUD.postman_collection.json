@@ -1,0 +1,914 @@
+{
+  "info": {
+    "_postman_id": "8a7c12d4-e65b-4b89-9fa1-ec2f2a3crud0",
+    "name": "EC2 F2 A3 CRUD - Task API Express",
+    "description": "Colección completa de pruebas para EC2 F2 A7 (A3) CRUD persistente con Express y MongoDB Atlas.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "taskId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "EC2 F2 A3 CRUD",
+      "description": "Carpeta principal requerida en el paso 12 de la guía.",
+      "item": [
+        {
+          "name": "1. Positivas",
+          "item": [
+            {
+              "name": "POST - Crear tarea (Paso 13)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Pestaña Tests de POST /api/tasks (Paso 12 de la guía)",
+                      "const responseBody = pm.response.json();",
+                      "pm.collectionVariables.set('taskId', responseBody.data.id);",
+                      "",
+                      "pm.test('La tarea fue creada', () => {",
+                      "    pm.response.to.have.status(201);",
+                      "    pm.expect(responseBody.data.status).to.eql('pending');",
+                      "});",
+                      "",
+                      "pm.test('El identificador tiene formato de 24 caracteres hex', () => {",
+                      "    pm.expect(responseBody.data.id).to.match(/^[0-9a-fA-F]{24}$/);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Preparar evidencia del CRUD\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET - Listar tareas (Paso 14)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('Responde 200 y devuelve la lista de tareas', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.expect(responseBody.data).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('La lista incluye la tarea recién creada', () => {",
+                      "    const taskId = pm.collectionVariables.get('taskId');",
+                      "    const exists = responseBody.data.some(task => task.id === taskId);",
+                      "    pm.expect(exists).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET - Consultar tarea por id (Paso 14)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('Responde 200 y presenta el id en lugar de _id', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.expect(responseBody.data.id).to.eql(pm.collectionVariables.get('taskId'));",
+                      "    pm.expect(responseBody.data._id).to.be.undefined;",
+                      "    pm.expect(responseBody.data.__v).to.be.undefined;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "{{taskId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH - Actualizar solo title (Paso 15)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Pestaña Tests de PATCH /api/tasks/{{taskId}} (Paso 12 de la guía)",
+                      "const responseBody = pm.response.json();",
+                      "pm.test('La tarea fue actualizada', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.expect(responseBody.data.id)",
+                      "      .to.eql(pm.collectionVariables.get('taskId'));",
+                      "});",
+                      "",
+                      "pm.test('El título nuevo cambió y conserva status pending', () => {",
+                      "    pm.expect(responseBody.data.title).to.eql('Documentar el CRUD persistente');",
+                      "    pm.expect(responseBody.data.status).to.eql('pending');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Documentar el CRUD persistente\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "{{taskId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH - Actualizar solo status (Paso 15)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('Responde 200, status completed y conserva el mismo título', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.expect(responseBody.data.id).to.eql(pm.collectionVariables.get('taskId'));",
+                      "    pm.expect(responseBody.data.status).to.eql('completed');",
+                      "    pm.expect(responseBody.data.title).to.eql('Documentar el CRUD persistente');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"completed\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "{{taskId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH - Actualizar ambos campos (Paso 15)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('Responde 200 y actualiza ambos campos', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.expect(responseBody.data.title).to.eql('Revisar evidencias');",
+                      "    pm.expect(responseBody.data.status).to.eql('pending');",
+                      "});",
+                      "",
+                      "pm.test('updatedAt cambió y createdAt permaneció igual', () => {",
+                      "    pm.expect(responseBody.data.createdAt).to.be.a('string');",
+                      "    pm.expect(responseBody.data.updatedAt).to.be.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Revisar evidencias\",\n  \"status\": \"pending\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "{{taskId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH - Completar tarea con ruta heredada (Paso 16)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('Responde 200 y status completed sin requerir cuerpo', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.expect(responseBody.data.status).to.eql('completed');",
+                      "    pm.expect(responseBody.data.id).to.eql(pm.collectionVariables.get('taskId'));",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}/complete",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "{{taskId}}",
+                    "complete"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "DELETE - Eliminar tarea (Paso 17)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Eliminación exitosa responde 204 sin cuerpo', () => {",
+                      "    pm.response.to.have.status(204);",
+                      "    pm.expect(pm.response.text()).to.eql('');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "{{taskId}}"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Negativas",
+          "item": [
+            {
+              "name": "GET - ID inválido formato incorrecto (Paso 18)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('Responde 400 INVALID_ID', () => {",
+                      "    pm.response.to.have.status(400);",
+                      "    pm.expect(responseBody.error.code).to.eql('INVALID_ID');",
+                      "    pm.expect(responseBody.error.requestId).to.be.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/1",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH - ID con formato inválido (Paso 18)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('Responde 400 INVALID_ID en PATCH', () => {",
+                      "    pm.response.to.have.status(400);",
+                      "    pm.expect(responseBody.error.code).to.eql('INVALID_ID');",
+                      "    pm.expect(responseBody.error.requestId).to.be.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Nuevo título\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/1",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH - ObjectId inexistente (Paso 18)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('Responde 404 TASK_NOT_FOUND', () => {",
+                      "    pm.response.to.have.status(404);",
+                      "    pm.expect(responseBody.error.code).to.eql('TASK_NOT_FOUND');",
+                      "    pm.expect(responseBody.error.requestId).to.be.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Nuevo título\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/507f1f77bcf86cd799439011",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "507f1f77bcf86cd799439011"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH - Sin Content-Type application-json (Paso 18)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('Responde 415 UNSUPPORTED_MEDIA_TYPE', () => {",
+                      "    pm.response.to.have.status(415);",
+                      "    pm.expect(responseBody.error.code).to.eql('UNSUPPORTED_MEDIA_TYPE');",
+                      "    pm.expect(responseBody.error.requestId).to.be.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "text/plain"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"title\": \"Nuevo título\"}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "{{taskId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH - Cuerpo vacío (Paso 18)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('Responde 422 VALIDATION_ERROR por cuerpo vacío', () => {",
+                      "    pm.response.to.have.status(422);",
+                      "    pm.expect(responseBody.error.code).to.eql('VALIDATION_ERROR');",
+                      "    const hasBodyField = responseBody.error.details.some(d => d.field === 'body');",
+                      "    pm.expect(hasBodyField).to.be.true;",
+                      "    pm.expect(responseBody.error.requestId).to.be.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "{{taskId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH - Title vacío o solo espacios (Paso 18)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('Responde 422 por title vacío', () => {",
+                      "    pm.response.to.have.status(422);",
+                      "    pm.expect(responseBody.error.code).to.eql('VALIDATION_ERROR');",
+                      "    const hasTitleField = responseBody.error.details.some(d => d.field === 'title');",
+                      "    pm.expect(hasTitleField).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"   \"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "{{taskId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH - Status inválido (Paso 18)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('Responde 422 por status inválido', () => {",
+                      "    pm.response.to.have.status(422);",
+                      "    pm.expect(responseBody.error.code).to.eql('VALIDATION_ERROR');",
+                      "    const hasStatusField = responseBody.error.details.some(d => d.field === 'status');",
+                      "    pm.expect(hasStatusField).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"archived\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "{{taskId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH - Campo desconocido no permitido (Paso 18)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('Responde 422 e identifica el campo no permitido', () => {",
+                      "    pm.response.to.have.status(422);",
+                      "    pm.expect(responseBody.error.code).to.eql('VALIDATION_ERROR');",
+                      "    const hasOwnerField = responseBody.error.details.some(d => d.field === 'owner');",
+                      "    pm.expect(hasOwnerField).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"owner\": \"Ana\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "{{taskId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH - JSON mal formado (Paso 18)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('Responde 400 INVALID_JSON', () => {",
+                      "    pm.response.to.have.status(400);",
+                      "    pm.expect(responseBody.error.code).to.eql('INVALID_JSON');",
+                      "    pm.expect(responseBody.error.requestId).to.be.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "{{taskId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "DELETE - ObjectId inexistente (Paso 18)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('DELETE a recurso inexistente responde 404', () => {",
+                      "    pm.response.to.have.status(404);",
+                      "    pm.expect(responseBody.error.code).to.eql('TASK_NOT_FOUND');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/507f1f77bcf86cd799439011",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "507f1f77bcf86cd799439011"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "3. Regresión",
+          "item": [
+            {
+              "name": "GET - Health check (Paso 20)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('GET /health responde 200', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/health",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "health"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET - Health database check (Paso 20)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('GET /health/database responde 200 connected', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/health/database",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "health",
+                    "database"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET - Consultar tarea eliminada (Paso 17 y 20)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('GET posterior a DELETE responde 404 TASK_NOT_FOUND', () => {",
+                      "    pm.response.to.have.status(404);",
+                      "    pm.expect(responseBody.error.code).to.eql('TASK_NOT_FOUND');",
+                      "    pm.expect(responseBody.error.requestId).to.be.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "tasks",
+                    "{{taskId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET - Ruta inexistente (Paso 20)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const responseBody = pm.response.json();",
+                      "pm.test('Ruta inexistente responde 404 ROUTE_NOT_FOUND', () => {",
+                      "    pm.response.to.have.status(404);",
+                      "    pm.expect(responseBody.error.code).to.eql('ROUTE_NOT_FOUND');",
+                      "    pm.expect(responseBody.error.requestId).to.be.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/no-existe",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "no-existe"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
