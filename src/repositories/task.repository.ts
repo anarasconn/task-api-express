@@ -27,6 +27,16 @@ const buildFilter = (query: TaskListQuery): FilterQuery<TaskPersistence> => {
   if (query.search !== undefined) {
     filter.title = { $regex: new RegExp(escapeRegex(query.search), 'i') };
   }
+  if (query.createdFrom !== undefined || query.createdTo !== undefined) {
+    const createdAtFilter: { $gte?: Date; $lte?: Date } = {};
+    if (query.createdFrom !== undefined) {
+      createdAtFilter.$gte = query.createdFrom;
+    }
+    if (query.createdTo !== undefined) {
+      createdAtFilter.$lte = query.createdTo;
+    }
+    filter.createdAt = createdAtFilter;
+  }
   return filter;
 };
 

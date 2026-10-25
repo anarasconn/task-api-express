@@ -21,8 +21,30 @@ const ALLOWED_QUERY_FIELDS = new Set([
   'status',
   'search',
   'sortBy',
-  'order'
+  'order',
+  'createdFrom',
+  'createdTo'
 ]);
+
+const ISO_8601_REGEX = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[+-]\d{2}:?\d{2})?)?$/;
+
+const parseIsoDate = (
+  value: string | undefined,
+  field: string,
+  issues: FieldIssue[]
+): Date | undefined => {
+  if (value === undefined) return undefined;
+  if (!ISO_8601_REGEX.test(value)) {
+    issues.push({ field, message: 'Debe ser una fecha ISO 8601 válida.' });
+    return undefined;
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    issues.push({ field, message: 'Debe ser una fecha ISO 8601 válida.' });
+    return undefined;
+  }
+  return date;
+};
 
 const readString = (
   query: Record<string, unknown>,
@@ -87,6 +109,8 @@ export const validateTaskQuery = (
   const rawSearch = readString(query, 'search', issues);
   const rawSortBy = readString(query, 'sortBy', issues);
   const rawOrder = readString(query, 'order', issues);
+  const rawCreatedFrom = readString(query, 'createdFrom', issues);
+  const rawCreatedTo = readString(query, 'createdTo', issues);
 
   const page = parsePositiveInteger(
     rawPage,
@@ -142,6 +166,16 @@ export const validateTaskQuery = (
     else issues.push({ field: 'order', message: 'Debe ser asc o desc.' });
   }
 
+  const createdFrom = parseIsoDate(rawCreatedFrom, 'createdFrom', issues);
+  const createdTo = parseIsoDate(rawCreatedTo, 'createdTo', issues);
+
+  if (createdFrom && createdTo && createdFrom > createdTo) {
+    issues.push({
+      field: 'createdFrom',
+      message: 'createdFrom no debe ser posterior a createdTo.'
+    });
+  }
+
   if (issues.length > 0) {
     next(
       new AppError(
@@ -160,7 +194,9 @@ export const validateTaskQuery = (
     sortBy,
     order,
     ...(status === undefined ? {} : { status }),
-    ...(search === undefined ? {} : { search })
+    ...(search === undefined ? {} : { search }),
+    ...(createdFrom === undefined ? {} : { createdFrom }),
+    ...(createdTo === undefined ? {} : { createdTo })
   };
 
   res.locals.taskQuery = taskQuery;
