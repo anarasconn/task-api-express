@@ -1,0 +1,888 @@
+{
+  "info": {
+    "_postman_id": "a9b8c7d6-e5f4-4a3b-2c1d-0e9f8a7b6c5d",
+    "name": "EC2 F3 A8 Consultas - Task API Express",
+    "description": "Colección completa de pruebas para EC2 F3 A8: Paginación, Filtros, Búsqueda, Ordenamiento, Desafío de fechas y Regresión CRUD.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "taskId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "EC2 F3 A8 Consultas",
+      "item": [
+        {
+          "name": "1. Consultas y Paginación",
+          "item": [
+            {
+              "name": "GET - Listado predeterminado sin parámetros (Paso 15)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Responde 200 con data y meta', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.expect(body.data).to.be.an('array');",
+                      "    pm.expect(body.meta).to.be.an('object');",
+                      "});",
+                      "",
+                      "pm.test('Metadatos por defecto: page=1 y limit=10', () => {",
+                      "    pm.expect(body.meta.page).to.eql(1);",
+                      "    pm.expect(body.meta.limit).to.eql(10);",
+                      "    pm.expect(body.meta.total).to.be.a('number');",
+                      "    pm.expect(body.meta.totalPages).to.be.a('number');",
+                      "});",
+                      "",
+                      "pm.test('Documentos no exponen _id ni __v', () => {",
+                      "    body.data.forEach(task => {",
+                      "        pm.expect(task.id).to.be.a('string');",
+                      "        pm.expect(task._id).to.be.undefined;",
+                      "        pm.expect(task.__v).to.be.undefined;",
+                      "    });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"]
+                }
+              }
+            },
+            {
+              "name": "GET - Paginación Página 1 con limit=2 (Paso 16)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Tests de GET /api/tasks?page=1&limit=2 (Paso 12)",
+                      "const body = pm.response.json();",
+                      "pm.test('La página es válida', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.expect(body.data).to.be.an('array');",
+                      "    pm.expect(body.data.length).to.be.at.most(2);",
+                      "    pm.expect(body.meta.page).to.eql(1);",
+                      "    pm.expect(body.meta.limit).to.eql(2);",
+                      "});",
+                      "",
+                      "if (body.data.length > 0) {",
+                      "    pm.collectionVariables.set('firstPageTaskId', body.data[0].id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?page=1&limit=2",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "limit", "value": "2" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET - Paginación Página 2 con limit=2 (Paso 16)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Página 2 contiene subconjunto distinto', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.expect(body.meta.page).to.eql(2);",
+                      "    pm.expect(body.meta.limit).to.eql(2);",
+                      "    pm.expect(body.meta.hasPreviousPage).to.be.true;",
+                      "",
+                      "    const firstPageTaskId = pm.collectionVariables.get('firstPageTaskId');",
+                      "    if (firstPageTaskId && body.data.length > 0) {",
+                      "        const exists = body.data.some(task => task.id === firstPageTaskId);",
+                      "        pm.expect(exists).to.be.false;",
+                      "    }",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?page=2&limit=2",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [
+                    { "key": "page", "value": "2" },
+                    { "key": "limit", "value": "2" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET - Filtrar por status=completed (Paso 17)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Devuelve únicamente tareas completadas', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    body.data.forEach(task => {",
+                      "        pm.expect(task.status).to.eql('completed');",
+                      "    });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?status=completed",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [
+                    { "key": "status", "value": "completed" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET - Filtrar por status=pending (Paso 17)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Devuelve únicamente tareas pendientes', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    body.data.forEach(task => {",
+                      "        pm.expect(task.status).to.eql('pending');",
+                      "    });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?status=pending",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [
+                    { "key": "status", "value": "pending" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET - Buscar por título search=api (Paso 18)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Coincidencias en título sin distinguir mayúsculas', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    body.data.forEach(task => {",
+                      "        pm.expect(task.title.toLowerCase()).to.include('api');",
+                      "    });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?search=api",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [
+                    { "key": "search", "value": "api" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET - Ordenar por title asc (Paso 19)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Orden alfabético ascendente', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    for (let i = 0; i < body.data.length - 1; i++) {",
+                      "        pm.expect(body.data[i].title.localeCompare(body.data[i + 1].title)).to.be.at.most(0);",
+                      "    }",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?sortBy=title&order=asc",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [
+                    { "key": "sortBy", "value": "title" },
+                    { "key": "order", "value": "asc" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET - Consulta combinada completa (Paso 20)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Consulta compuesta responde 200 con filtros respetados', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.expect(body.meta.page).to.eql(1);",
+                      "    pm.expect(body.meta.limit).to.eql(2);",
+                      "    body.data.forEach(task => {",
+                      "        pm.expect(task.status).to.eql('pending');",
+                      "        pm.expect(task.title.toLowerCase()).to.include('entrega');",
+                      "    });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?status=pending&search=entrega&page=1&limit=2&sortBy=title&order=asc",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [
+                    { "key": "status", "value": "pending" },
+                    { "key": "search", "value": "entrega" },
+                    { "key": "page", "value": "1" },
+                    { "key": "limit", "value": "2" },
+                    { "key": "sortBy", "value": "title" },
+                    { "key": "order", "value": "asc" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET - Desafío de fechas createdFrom y createdTo (Paso 18)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Filtro por rango de fechas responde 200', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.expect(body.data).to.be.an('array');",
+                      "    pm.expect(body.meta).to.be.an('object');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?createdFrom=2026-01-01&createdTo=2026-12-31",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [
+                    { "key": "createdFrom", "value": "2026-01-01" },
+                    { "key": "createdTo", "value": "2026-12-31" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET - Página posterior al total responde data vacía (Paso 13)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Página vacía coherente', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.expect(body.data).to.be.an('array');",
+                      "    pm.expect(body.data.length).to.eql(0);",
+                      "    pm.expect(body.meta.hasNextPage).to.be.false;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?page=999&limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [
+                    { "key": "page", "value": "999" },
+                    { "key": "limit", "value": "10" }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Casos Negativos de Consulta",
+          "item": [
+            {
+              "name": "GET - Negativa page=0 (Paso 21)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Tests de un parámetro inválido (Paso 12)",
+                      "const body = pm.response.json();",
+                      "pm.test('La consulta fue rechazada con 422', () => {",
+                      "    pm.response.to.have.status(422);",
+                      "    pm.expect(body.error.code).to.eql('QUERY_VALIDATION_ERROR');",
+                      "    pm.expect(body.error.details).to.be.an('array');",
+                      "    pm.expect(body.error.requestId).to.be.a('string');",
+                      "    pm.expect(body.error.details.some(d => d.field === 'page')).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?page=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [{ "key": "page", "value": "0" }]
+                }
+              }
+            },
+            {
+              "name": "GET - Negativa limit=51 (Paso 21)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Límite mayor a 50 rechazado con 422', () => {",
+                      "    pm.response.to.have.status(422);",
+                      "    pm.expect(body.error.code).to.eql('QUERY_VALIDATION_ERROR');",
+                      "    pm.expect(body.error.details.some(d => d.field === 'limit')).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?limit=51",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [{ "key": "limit", "value": "51" }]
+                }
+              }
+            },
+            {
+              "name": "GET - Negativa status=archived (Paso 21)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Estado fuera de enum rechazado con 422', () => {",
+                      "    pm.response.to.have.status(422);",
+                      "    pm.expect(body.error.code).to.eql('QUERY_VALIDATION_ERROR');",
+                      "    pm.expect(body.error.details.some(d => d.field === 'status')).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?status=archived",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [{ "key": "status", "value": "archived" }]
+                }
+              }
+            },
+            {
+              "name": "GET - Negativa search vacío (Paso 21)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Search vacío rechazado con 422', () => {",
+                      "    pm.response.to.have.status(422);",
+                      "    pm.expect(body.error.code).to.eql('QUERY_VALIDATION_ERROR');",
+                      "    pm.expect(body.error.details.some(d => d.field === 'search')).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?search=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [{ "key": "search", "value": "" }]
+                }
+              }
+            },
+            {
+              "name": "GET - Negativa sortBy=priority (Paso 21)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Campo de orden no permitido rechazado con 422', () => {",
+                      "    pm.response.to.have.status(422);",
+                      "    pm.expect(body.error.code).to.eql('QUERY_VALIDATION_ERROR');",
+                      "    pm.expect(body.error.details.some(d => d.field === 'sortBy')).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?sortBy=priority",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [{ "key": "sortBy", "value": "priority" }]
+                }
+              }
+            },
+            {
+              "name": "GET - Negativa order=sideways (Paso 21)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Dirección de orden no permitida rechazada con 422', () => {",
+                      "    pm.response.to.have.status(422);",
+                      "    pm.expect(body.error.code).to.eql('QUERY_VALIDATION_ERROR');",
+                      "    pm.expect(body.error.details.some(d => d.field === 'order')).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?order=sideways",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [{ "key": "order", "value": "sideways" }]
+                }
+              }
+            },
+            {
+              "name": "GET - Negativa owner=ana (Paso 21)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Parámetro desconocido identificado y rechazado con 422', () => {",
+                      "    pm.response.to.have.status(422);",
+                      "    pm.expect(body.error.code).to.eql('QUERY_VALIDATION_ERROR');",
+                      "    pm.expect(body.error.details.some(d => d.field === 'owner')).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?owner=ana",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [{ "key": "owner", "value": "ana" }]
+                }
+              }
+            },
+            {
+              "name": "GET - Desafío Negativa fecha inválida (Paso 18)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Fecha ISO 8601 inválida rechazada con 422', () => {",
+                      "    pm.response.to.have.status(422);",
+                      "    pm.expect(body.error.code).to.eql('QUERY_VALIDATION_ERROR');",
+                      "    pm.expect(body.error.details.some(d => d.field === 'createdFrom')).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?createdFrom=fecha-invalida",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [{ "key": "createdFrom", "value": "fecha-invalida" }]
+                }
+              }
+            },
+            {
+              "name": "GET - Desafío Negativa rango invertido (Paso 18)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('createdFrom posterior a createdTo rechazada con 422', () => {",
+                      "    pm.response.to.have.status(422);",
+                      "    pm.expect(body.error.code).to.eql('QUERY_VALIDATION_ERROR');",
+                      "    pm.expect(body.error.details.some(d => d.field === 'createdFrom')).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks?createdFrom=2026-12-31&createdTo=2026-01-01",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"],
+                  "query": [
+                    { "key": "createdFrom", "value": "2026-12-31" },
+                    { "key": "createdTo", "value": "2026-01-01" }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "3. Regresión CRUD de A7",
+          "item": [
+            {
+              "name": "GET - Salud /health (Paso 22)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('GET /health responde 200', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/health",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["health"]
+                }
+              }
+            },
+            {
+              "name": "GET - Salud base de datos /health/database (Paso 22)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('GET /health/database responde 200 connected', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/health/database",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["health", "database"]
+                }
+              }
+            },
+            {
+              "name": "POST - Crear tarea (Paso 22)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.collectionVariables.set('taskId', body.data.id);",
+                      "pm.test('POST /api/tasks responde 201', () => {",
+                      "    pm.response.to.have.status(201);",
+                      "    pm.expect(body.data.status).to.eql('pending');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Tarea de prueba regresion A8\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks"]
+                }
+              }
+            },
+            {
+              "name": "GET - Consultar tarea por id (Paso 22)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('GET /api/tasks/:id responde 200', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.expect(body.data.id).to.eql(pm.collectionVariables.get('taskId'));",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks", "{{taskId}}"]
+                }
+              }
+            },
+            {
+              "name": "PATCH - Actualizar tarea (Paso 22)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('PATCH /api/tasks/:id responde 200', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.expect(body.data.title).to.eql('Tarea de prueba modificada');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Tarea de prueba modificada\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks", "{{taskId}}"]
+                }
+              }
+            },
+            {
+              "name": "PATCH - Completar tarea ruta heredada (Paso 22)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('PATCH /api/tasks/:id/complete responde 200', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.expect(body.data.status).to.eql('completed');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}/complete",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks", "{{taskId}}", "complete"]
+                }
+              }
+            },
+            {
+              "name": "DELETE - Eliminar tarea (Paso 22)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('DELETE responde 204 sin cuerpo', () => {",
+                      "    pm.response.to.have.status(204);",
+                      "    pm.expect(pm.response.text()).to.eql('');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks", "{{taskId}}"]
+                }
+              }
+            },
+            {
+              "name": "GET - Tarea eliminada responde 404 (Paso 22)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.test('Recurso eliminado responde 404 TASK_NOT_FOUND', () => {",
+                      "    pm.response.to.have.status(404);",
+                      "    pm.expect(body.error.code).to.eql('TASK_NOT_FOUND');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tasks", "{{taskId}}"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
