@@ -1,29 +1,41 @@
-﻿import dns from 'node:dns';
+import dns from 'node:dns';
 dns.setServers(['8.8.8.8', '1.1.1.1']);
-import 'dotenv/config';
+import type { Server } from 'node:http';
 import { app } from './app.js';
-import { connectDatabase } from './config/database.js';
-import { loadEnvironment } from './config/env.js';
+import { connectDatabase, disconnectDatabase } from './config/database.js';
+import { env } from './config/env.js';
 
-const startServer = async (): Promise<void> => {
+let server: Server | undefined;
+
+const start = async (): Promise<void> => {
   try {
-    const env = loadEnvironment();
-
-    await connectDatabase({
-      uri: env.mongodbUri,
-      dbName: env.mongodbDbName
+    await connectDatabase();
+    server = app.listen(env.PORT, () => {
+      console.log(`API disponible en http://localhost:${env.PORT}`);
     });
-
-    app.listen(env.port, () => {
-      console.log(`API disponible en http://localhost:${env.port}`);
-    });
-   } catch (error) {
-console.error(error instanceof Error ? `${error.name}: ${error.message}` : 'Error desconocido');    console.error(
-      'No fue posible iniciar la API. Revise MONGODB_URI, ' +
-      'el usuario y la lista de acceso de red.'
-    );
+  } catch {
+    console.error('No fue posible iniciar la API. Revisa la configuración y la conexión.');
     process.exitCode = 1;
   }
 };
 
-void startServer();
+const shutdown = async (signal: string): Promise<void> => {
+  console.log(`Se recibió ${signal}. Cerrando la API.`);
+  if (server) {
+    await new Promise<void>((resolve, reject) => {
+      server?.close((error) => error ? reject(error) : resolve());
+    });
+  }
+  await disconnectDatabase();
+};
+
+for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+  process.once(signal, () => {
+    void shutdown(signal).catch(() => {
+      console.error('No fue posible cerrar la API correctamente.');
+      process.exitCode = 1;
+    });
+  });
+}
+
+await start();
