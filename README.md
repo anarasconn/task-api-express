@@ -108,3 +108,10 @@ Las colecciones de prueba se encuentran en el directorio `postman/`:
 - `postman/EC2_F3_A8_Consultas.postman_collection.json` (Pruebas de consultas, paginación, filtros, ordenamiento y casos negativos A8)
 
 Para ejecutarlas, importa el archivo en Postman y asegúrate de tener la variable de colección `baseUrl` apuntando a `http://localhost:3000`.
+
+## Autenticación (EC3 F1 A9)
+
+La API ofrece `POST /api/auth/register` (201) y `POST /api/auth/login` (200). El registro exige `name`, `email`, `password` y `confirmPassword`; rechaza campos no permitidos, requiere 15 caracteres y máximo 72 bytes UTF-8 para la contraseña, y comprueba la confirmación antes de guardar. Las cuentas nuevas siempre reciben el rol `user`. El login devuelve `data.user`, `accessToken`, `tokenType` (`Bearer`) y `expiresIn`.
+
+Configura en `.env` `JWT_SECRET` con al menos 32 bytes aleatorios. Opcionalmente define `JWT_EXPIRES_IN` (por ejemplo `1h`), `JWT_ISSUER` y `JWT_AUDIENCE`. `.env` permanece local; `.env.example` no contiene secretos. Las rutas de tareas siguen públicas en esta actividad; la protección con token pertenece a A10. La colección de Postman para auth está en `postman/EC3_F1_A9_Auth.postman_collection.json`.
+
