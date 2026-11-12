@@ -69,3 +69,14 @@ export const findUserDocumentByEmail = async (
 export const createUserDocument = async (
   data: CreateUserRecord
 ): Promise<UserDocument> => execute(async () => UserModel.create(data));
+
+export const setUserRoleByEmail = async (
+  email: string,
+  role: UserRole
+): Promise<UserDocument | null> => execute(async () =>
+  UserModel.findOneAndUpdate(
+    { email },
+    { $set: { role } },
+    { new: true, runValidators: true }
+  )
+);
