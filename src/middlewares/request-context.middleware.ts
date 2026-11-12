@@ -1,7 +1,6 @@
-﻿import { randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import type { NextFunction, Request, Response } from 'express';
 
-// Asigna un identificador unico a la peticion para incluirlo en la respuesta.
 export const requestContext = (
   _req: Request,
   res: Response,
