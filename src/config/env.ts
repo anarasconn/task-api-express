@@ -30,6 +30,14 @@ const parseExpiration = (): string => {
   return value;
 };
 
+const parsePositiveInteger = (name: string, fallback: string): number => {
+  const value = Number(process.env[name] ?? fallback);
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(`${name} debe ser un número entero mayor que cero.`);
+  }
+  return value;
+};
+
 export const env = Object.freeze({
   PORT: parsePort(process.env.PORT),
   MONGODB_URI: requireValue('MONGODB_URI'),
@@ -37,5 +45,11 @@ export const env = Object.freeze({
   JWT_SECRET: parseJwtSecret(),
   JWT_EXPIRES_IN: parseExpiration(),
   JWT_ISSUER: process.env.JWT_ISSUER?.trim() || 'task-api-express',
-  JWT_AUDIENCE: process.env.JWT_AUDIENCE?.trim() || 'task-api-client'
+  JWT_AUDIENCE: process.env.JWT_AUDIENCE?.trim() || 'task-api-client',
+  CORS_ORIGIN: requireValue('CORS_ORIGIN'),
+  AUTH_RATE_LIMIT_WINDOW_MS: parsePositiveInteger(
+    'AUTH_RATE_LIMIT_WINDOW_MS',
+    '900000'
+  ),
+  AUTH_RATE_LIMIT_MAX: parsePositiveInteger('AUTH_RATE_LIMIT_MAX', '10')
 });
