@@ -122,8 +122,6 @@ export const validateRegister = (
     } else if (password !== undefined && body.confirmPassword !== password) {
       issues.push({ field: 'confirmPassword', message: 'Las contraseñas no coinciden.' });
     }
-  } else {
-    issues.push({ field: 'confirmPassword', message: 'La confirmación de contraseña es obligatoria.' });
   }
 
   if (rejectInvalidInput(issues, next)) return;
