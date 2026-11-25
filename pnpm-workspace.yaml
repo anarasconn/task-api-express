@@ -1,5 +1,6 @@
 packages:
   - .
-
+  - client
 allowBuilds:
+  '@scarf/scarf': false
   esbuild: true
