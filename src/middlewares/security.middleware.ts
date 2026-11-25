@@ -19,8 +19,10 @@ const corsOptions: CorsOptions = {
 };
 
 export const securityHeaders = helmet();
+export const documentationSecurityHeaders = helmet({
+  contentSecurityPolicy: false
+});
 export const corsPolicy = cors(corsOptions);
-
 export const authRateLimiter = rateLimit({
   windowMs: env.AUTH_RATE_LIMIT_WINDOW_MS,
   limit: env.AUTH_RATE_LIMIT_MAX,
