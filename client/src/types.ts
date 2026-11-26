@@ -34,6 +34,28 @@ export interface LoginData {
   expiresIn: string;
 }
 
+export interface RegisterData {
+  user: User;
+}
+
+export interface TaskListQuery {
+  page: number;
+  limit: number;
+  status: '' | TaskStatus;
+  search: string;
+  sortBy: 'title' | 'status' | 'createdAt' | 'updatedAt';
+  order: 'asc' | 'desc';
+}
+
+export interface CreateTaskInput {
+  title: string;
+}
+
+export interface UpdateTaskInput {
+  title?: string;
+  status?: TaskStatus;
+}
+
 export interface ApiEnvelope<T> {
   data: T;
 }

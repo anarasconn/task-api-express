@@ -1,6 +1,6 @@
 import type { ApiErrorData } from './types.js';
 
-const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000').replace(
+export const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000').replace(
   /\/$/,
   ''
 );
@@ -70,6 +70,8 @@ export const apiRequest = async <T>(
       `La solicitud terminó con el código ${response.status}.`
     );
   }
+
+  if (response.status === 204) return undefined as T;
 
   return payload as T;
 };
