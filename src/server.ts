@@ -10,8 +10,8 @@ let server: Server | undefined;
 const start = async (): Promise<void> => {
   try {
     await connectDatabase();
-    server = app.listen(env.PORT, () => {
-      console.log(`API disponible en http://localhost:${env.PORT}`);
+    server = app.listen(env.PORT, '0.0.0.0', () => {
+      console.log(`API ${env.APP_VERSION} disponible en ${env.PUBLIC_API_URL}`);
     });
   } catch {
     console.error('No fue posible iniciar la API. Revisa la configuración y la conexión.');

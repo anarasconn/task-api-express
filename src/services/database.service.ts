@@ -5,6 +5,10 @@ export interface DatabaseHealth {
   status: 'connected';
 }
 
+export interface DatabaseStatus {
+  status: 'up' | 'down';
+}
+
 const databaseUnavailable = (): AppError => {
   return new AppError(
     'La base de datos no está disponible.',
@@ -26,4 +30,9 @@ export const checkDatabaseHealth = async (): Promise<DatabaseHealth> => {
   } catch {
     throw databaseUnavailable();
   }
+};
+
+export const getDatabaseStatus = (): DatabaseStatus => {
+  const isConnected = mongoose.connection.readyState === 1 && Boolean(mongoose.connection.db);
+  return { status: isConnected ? 'up' : 'down' };
 };
